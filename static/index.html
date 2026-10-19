@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ReplyDock</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="top"><div class="brand"><span class="mark">RD</span><div><strong>ReplyDock</strong><small>Self-hosted message automation</small></div></div><span class="status"><i></i> Local control</span></header>
+<main><section class="hero"><p class="eyebrow">PRIVATE AUTOMATION</p><h1>Useful replies,<br><em>on your own server.</em></h1><p class="lead">Connect Slack and WhatsApp webhooks to simple rules you own. No SaaS subscription, no database service, no hidden worker.</p></section>
+<section class="grid"><article class="panel wide"><div class="panel-head"><div><p class="eyebrow">RULES</p><h2>Auto-reply rules</h2></div><button id="refresh">Refresh</button></div><form id="rule-form"><input name="phrase" placeholder="Phrase or keyword" required><input name="reply" placeholder="Automatic reply" required><select name="channel"><option value="both">Both channels</option><option value="slack">Slack</option><option value="whatsapp">WhatsApp</option></select><button class="primary">Add rule</button></form><div id="rules" class="list"></div></article>
+<article class="panel"><p class="eyebrow">ACTIVITY</p><h2>Recent messages</h2><div id="messages" class="list"></div></article></section>
+<section class="setup"><div><p class="eyebrow">SETUP</p><h2>Three environment variables, then connect webhooks.</h2></div><code>python3 server.py</code></section></main><footer><span>ReplyDock · MIT License</span><span>Slack + WhatsApp · SQLite · standard library</span></footer><script src="app.js"></script>
+</body></html>

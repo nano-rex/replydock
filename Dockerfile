@@ -1,0 +1,6 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY . .
+ENV REPLYDOCK_HOST=0.0.0.0 REPLYDOCK_PORT=8080
+EXPOSE 8080
+CMD ["python3", "server.py"]
