@@ -203,6 +203,17 @@ def send_whatsapp(recipient, text):
     request_json(url, payload, {"Authorization": f"Bearer {token}"})
 
 
+def send_whatsapp_template(recipient, name="hello_world", language="en_US"):
+    """Business-initiated messages must use an approved template; Meta's test apps ship with hello_world."""
+    token = env("WHATSAPP_ACCESS_TOKEN")
+    phone_id = env("WHATSAPP_PHONE_NUMBER_ID")
+    if not token or not phone_id:
+        raise RuntimeError("WHATSAPP_ACCESS_TOKEN or WHATSAPP_PHONE_NUMBER_ID is not configured")
+    url = f"https://graph.facebook.com/{env('WHATSAPP_GRAPH_VERSION', 'v20.0')}/{phone_id}/messages"
+    payload = {"messaging_product": "whatsapp", "to": recipient, "type": "template", "template": {"name": name, "language": {"code": language}}}
+    return request_json(url, payload, {"Authorization": f"Bearer {token}"})
+
+
 def process_message(channel, sender, text, metadata):
     rule = matching_rule(channel, text)
     if not rule:
@@ -404,6 +415,16 @@ class Handler(BaseHTTPRequestHandler):
                 channel = payload.get("channel") if payload.get("channel") in ("slack", "whatsapp") else "slack"
                 rule = matching_rule(channel, str(payload.get("text", "")))
                 self.send_json({"matched": bool(rule), "rule_id": rule["id"] if rule else None, "reply": rule["reply"] if rule else ""}); return
+            if parsed.path == "/api/whatsapp/test":
+                recipient = re.sub(r"\D", "", str(payload.get("to", "")))
+                if not 8 <= len(recipient) <= 15:
+                    raise ValueError("enter the phone number with country code, e.g. +60123456789")
+                try:
+                    result = send_whatsapp_template(recipient)
+                except RuntimeError as error:
+                    self.send_json({"ok": False, "error": str(error)}, HTTPStatus.BAD_GATEWAY); return
+                save_message("whatsapp", recipient, "(test template hello_world)", "hello_world", "sent")
+                self.send_json({"ok": True, "message_id": (result.get("messages") or [{}])[0].get("id", "")}); return
             rule_id, toggle = self.rule_id(parsed.path)
             if rule_id is not None and toggle:
                 connection = connect()

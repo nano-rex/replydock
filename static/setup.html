@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ReplyDock · WhatsApp setup</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="top"><div class="brand"><span class="mark">RD</span><div><strong>ReplyDock</strong><small>Self-hosted message automation</small></div></div><a class="status" href="/">← Dashboard</a></header>
+<main class="guide">
+<section class="hero"><p class="eyebrow">SETUP GUIDE</p><h1>Connect<br><em>WhatsApp.</em></h1><p class="lead">About ten minutes with Meta's free test number. ReplyDock answers messages people send to your business number. It does not start conversations, so the final test is you messaging the bot from your own phone.</p></section>
+
+<ol class="steps">
+<li class="panel"><p class="eyebrow">STEP 1</p><h2>Create a Meta app with WhatsApp</h2>
+<p>Open <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <b>Create app</b> → choose the business type → add the <b>WhatsApp</b> product. Meta gives you a free <b>test business number</b>.</p></li>
+
+<li class="panel"><p class="eyebrow">STEP 2</p><h2>Allow your phone as a recipient</h2>
+<p>In <b>WhatsApp → API Setup</b>, under <i>To</i>, add your own phone number with country code (for example <code>+60123456789</code>). Meta sends a code to that phone over WhatsApp; enter it to confirm. Test numbers can only message recipients approved this way.</p></li>
+
+<li class="panel"><p class="eyebrow">STEP 3</p><h2>Copy the credentials into <code>.env</code></h2>
+<p>From <b>API Setup</b> copy the <b>temporary access token</b> and the <b>Phone number ID</b>. From <b>App settings → Basic</b> copy the <b>App secret</b>. Pick any string as the verify token. Put them in <code>.env</code> next to <code>server.py</code> and restart ReplyDock:</p>
+<pre>WHATSAPP_ACCESS_TOKEN=EAAG...
+WHATSAPP_PHONE_NUMBER_ID=1234567890
+WHATSAPP_APP_SECRET=abc123...
+WHATSAPP_VERIFY_TOKEN=pick-any-string</pre>
+<p>The temporary token expires after about 24 hours. For a long-running setup, create a System User token in Meta Business Settings.</p>
+<div id="checks" class="checks"></div></li>
+
+<li class="panel"><p class="eyebrow">STEP 4</p><h2>Send a test message</h2>
+<p>This sends Meta's <code>hello_world</code> template to the number you approved in step 2. Business-started messages must use a template, so this checks the token and phone number ID without needing a webhook yet.</p>
+<form id="send-form" class="inline"><input name="to" placeholder="+60123456789" required><button class="primary">Send hello_world</button></form><p id="send-result" class="result" hidden></p></li>
+
+<li class="panel"><p class="eyebrow">STEP 5</p><h2>Give ReplyDock a public HTTPS address</h2>
+<p>Meta can only deliver to a public HTTPS URL. For testing, a tunnel is easiest:</p>
+<pre>cloudflared tunnel --url http://localhost:8080</pre>
+<p>It prints an address like <code>https://random-words.trycloudflare.com</code>. Paste it here to build your webhook URL:</p>
+<form id="url-form" class="inline"><input id="public-url" placeholder="https://random-words.trycloudflare.com"></form>
+<p class="result">Callback URL: <code id="webhook-url"></code></p>
+<p>For a permanent setup, run ReplyDock behind a reverse proxy with HTTPS and set <code>REPLYDOCK_HOST=0.0.0.0</code> and <code>REPLYDOCK_ADMIN_TOKEN</code>.</p></li>
+
+<li class="panel"><p class="eyebrow">STEP 6</p><h2>Register the webhook in Meta</h2>
+<p>In <b>WhatsApp → Configuration</b> → <b>Webhook</b> → <b>Edit</b>: paste the callback URL from step 5 and the same <code>WHATSAPP_VERIFY_TOKEN</code>, then <b>Verify and save</b>. Meta checks it immediately; if it fails, confirm ReplyDock is running and the tunnel is up. Then under <b>Webhook fields</b>, <b>Subscribe</b> to <code>messages</code>.</p></li>
+
+<li class="panel"><p class="eyebrow">STEP 7</p><h2>Message the bot</h2>
+<p>From your phone, send <code>hello</code> to the test business number. ReplyDock should answer within a few seconds using the matching rule. Incoming WhatsApp messages appear below; this list refreshes automatically.</p>
+<div id="activity" class="list"></div></li>
+</ol>
+
+<section class="setup"><div><p class="eyebrow">TROUBLESHOOTING</p><h2>If nothing happens</h2>
+<ul class="trouble">
+<li><b>Nothing appears in step 7.</b> The webhook isn't reaching ReplyDock. Check that it was verified, that <code>messages</code> is subscribed, and that the tunnel is still running (a quick tunnel gets a new URL every time it restarts).</li>
+<li><b>Message appears with status <i>no match</i>.</b> No enabled rule matches the text. Add or enable one on the dashboard.</li>
+<li><b>Status <i>failed: ... 190</i>.</b> The access token is invalid or expired. Copy a new one and restart.</li>
+<li><b>Status <i>failed: ... 131030</i>.</b> The recipient isn't in the allowed list (step 2).</li>
+<li><b>Webhook returns 401.</b> <code>WHATSAPP_APP_SECRET</code> doesn't match the app that sends the webhooks.</li>
+</ul></div></section>
+</main>
+<footer><span>ReplyDock · MIT License</span><span>Slack setup: see README</span></footer>
+<script src="setup.js"></script>
+</body></html>

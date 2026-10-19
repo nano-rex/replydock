@@ -61,6 +61,8 @@ Replies go into a thread under the incoming message; set `SLACK_REPLY_IN_THREAD=
 
 ## Connect WhatsApp
 
+The dashboard has a step-by-step guide at `/setup.html`. It shows which settings are missing, builds your webhook URL, can send a `hello_world` test message, and shows incoming WhatsApp messages as they arrive. Summary:
+
 1. Create a Meta app with the WhatsApp product at <https://developers.facebook.com/apps>.
 2. From **WhatsApp → API Setup**, copy the **Phone number ID** into `WHATSAPP_PHONE_NUMBER_ID` and an access token (a permanent System User token for production) into `WHATSAPP_ACCESS_TOKEN`.
 3. From **App settings → Basic**, copy the **App secret** into `WHATSAPP_APP_SECRET`. Choose any string for `WHATSAPP_VERIFY_TOKEN`. Restart ReplyDock.
@@ -83,6 +85,7 @@ All `/api/*` routes require the admin password when `REPLYDOCK_ADMIN_TOKEN` is s
 | POST | `/api/rules/<id>/toggle` | Enable/disable a rule |
 | DELETE | `/api/rules/<id>` | Delete a rule |
 | POST | `/api/test` | Preview: `{"text", "channel"}` → matching reply, nothing is sent |
+| POST | `/api/whatsapp/test` | Send the `hello_world` template: `{"to": "+60123456789"}` |
 | GET | `/api/messages` | Last 100 messages with reply and send status |
 | GET | `/api/status` | Which integration settings are present |
 | GET | `/healthz` | Liveness check (no auth) |

@@ -120,6 +120,14 @@ class ReplyDockTest(unittest.TestCase):
         self.assertEqual(sent["to"], "60123")
         self.assertIn("follow up", sent["text"]["body"])
 
+    def test_whatsapp_test_template(self):
+        self.assertEqual(self.call("/api/whatsapp/test", {"to": "+60 12-345 6789"})[0], 502)
+        os.environ.update(WHATSAPP_ACCESS_TOKEN="EA", WHATSAPP_PHONE_NUMBER_ID="123")
+        self.assertEqual(self.call("/api/whatsapp/test", {"to": "12"})[0], 400)
+        self.assertEqual(self.call("/api/whatsapp/test", {"to": "+60 12-345 6789"})[0], 200)
+        self.assertEqual(self.sent[0][1]["to"], "60123456789")
+        self.assertEqual(self.sent[0][1]["template"]["name"], "hello_world")
+
     def test_admin_token_protects_dashboard_not_webhooks(self):
         os.environ["REPLYDOCK_ADMIN_TOKEN"] = "pw"
         self.assertEqual(self.call("/api/rules")[0], 401)
@@ -137,6 +145,7 @@ class ReplyDockTest(unittest.TestCase):
     def test_static_path_traversal_blocked(self):
         self.assertEqual(self.call("/../server.py")[0], 404)
         self.assertEqual(self.call("/app.js")[0], 200)
+        self.assertEqual(self.call("/setup.html")[0], 200)
 
 
 if __name__ == "__main__":
